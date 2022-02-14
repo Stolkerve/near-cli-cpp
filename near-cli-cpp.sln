@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "near-cli-cpp", "near-cli-cpp\near-cli-cpp.vcxproj", "{E032FFB5-CC95-8E5A-751B-C710615D5ADD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependencies", "Dependencies", "{53E47842-3FC8-3998-A828-34EB942B241A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libsodium", "near-cli-cpp\dependencies\libsodium\libsodium.vcxproj", "{8D4DBA89-F9B7-6E00-42F6-1FA6AE9F4C55}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E032FFB5-CC95-8E5A-751B-C710615D5ADD}.Debug|x64.ActiveCfg = Debug|x64
+		{E032FFB5-CC95-8E5A-751B-C710615D5ADD}.Debug|x64.Build.0 = Debug|x64
+		{E032FFB5-CC95-8E5A-751B-C710615D5ADD}.Release|x64.ActiveCfg = Release|x64
+		{E032FFB5-CC95-8E5A-751B-C710615D5ADD}.Release|x64.Build.0 = Release|x64
+		{8D4DBA89-F9B7-6E00-42F6-1FA6AE9F4C55}.Debug|x64.ActiveCfg = Debug|x64
+		{8D4DBA89-F9B7-6E00-42F6-1FA6AE9F4C55}.Debug|x64.Build.0 = Debug|x64
+		{8D4DBA89-F9B7-6E00-42F6-1FA6AE9F4C55}.Release|x64.ActiveCfg = Release|x64
+		{8D4DBA89-F9B7-6E00-42F6-1FA6AE9F4C55}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8D4DBA89-F9B7-6E00-42F6-1FA6AE9F4C55} = {53E47842-3FC8-3998-A828-34EB942B241A}
+	EndGlobalSection
+EndGlobal

@@ -13,5 +13,5 @@ Open the visual studio solution
 `premake5 --arch=x86 gmake2`\
 `make`\
 64 bits\
-`premake5 --arch=x86_64 gmake2`
-`make`\
+`premake5 --arch=x86_64 gmake2`\
+`make`

@@ -66,9 +66,11 @@ GENERATED :=
 OBJECTS :=
 
 GENERATED += $(OBJDIR)/Account.o
+GENERATED += $(OBJDIR)/CommandsParser.o
 GENERATED += $(OBJDIR)/KeyPair.o
 GENERATED += $(OBJDIR)/main.o
 OBJECTS += $(OBJDIR)/Account.o
+OBJECTS += $(OBJDIR)/CommandsParser.o
 OBJECTS += $(OBJDIR)/KeyPair.o
 OBJECTS += $(OBJDIR)/main.o
 
@@ -135,6 +137,9 @@ endif
 # #############################################
 
 $(OBJDIR)/Account.o: src/Account.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/CommandsParser.o: src/CommandsParser.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/KeyPair.o: src/KeyPair.cpp

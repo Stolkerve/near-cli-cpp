@@ -23,11 +23,11 @@ public:
      */
     void SignEd25519(const std::string& ed25519Pk, const std::string& ed25519Spk);
 
-    const std::string& GetPublicKey() const { return publicKey; }
-    const std::string& GetPrivateKey() const { return privateKey; }
+    const std::string& GetPublicKey() const { return m_PublicKey; }
+    const std::string& GetPrivateKey() const { return m_PrivateKey; }
 private:
-    std::string publicKey = "";
-    std::string privateKey = "";
+    std::string m_PublicKey = "";
+    std::string m_PrivateKey = "";
 };
 
 #endif

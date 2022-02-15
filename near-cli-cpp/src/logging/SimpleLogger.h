@@ -21,6 +21,7 @@ Bright White    97  107
 constexpr auto BRIGHT_GREEN = "\x1B[92m";
 constexpr auto BRIGHT_YELLOW = "\x1B[93m";
 constexpr auto YELLOW = "\x1B[33m";
+constexpr auto RED = "\x1B[31m";
 constexpr auto RED_BACKGROUND = "\033[41;1m";
 constexpr auto BRIGHT_RED_BACKGROUND = "\033[101;1m";
 constexpr auto NORMAL_BACKGROUND = "\033[0m\n";
@@ -78,7 +79,7 @@ namespace simple {
                 std::cout << '\n';
                 return;
             }
-            std::cout << RED_BACKGROUND << YELLOW << getDate() << stream.str() << NORMAL_COLOR << NORMAL_BACKGROUND;
+            std::cout << NORMAL_BACKGROUND << RED << getDate() << stream.str() << NORMAL_COLOR << NORMAL_BACKGROUND;
 
         }
     };

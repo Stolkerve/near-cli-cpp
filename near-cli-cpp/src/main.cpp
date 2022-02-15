@@ -3,10 +3,14 @@
 #define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
 #endif // _WIN_32
 
+#include <iostream>
 #include <sstream>
+#include <fstream>
 #include <thread>
+#include <mutex>
 #include <string_view>
 #include <vector>
+#include <functional>
 
 #include <httplib.h>
 #include <nlohmann/json.hpp>
@@ -15,27 +19,52 @@
 #include "utils.h"
 #include "KeyPair.h"
 
-// https://wallet.testnet.near.org/login/?referrer=NEAR+CLI&public_key=ed25519%3ABkQXk3mnKFh7aDJZuZLD8zadRBncUkmgQaorymwzr1je&success_url=http%3A%2F%2F127.0.0.1%3A5000
+void CreateCredentialsFile_Test(std::string accountId, KeyPair pair)
+{
+    std::fstream credentialsFile(( accountId + ".json"), std::ios_base::out);
+
+    nlohmann::json fileContent = {
+        {"account_id", accountId},
+        {"public_key", pair.GetPublicKey()},
+        {"private_key", pair.GetPrivateKey()},
+    };
+
+    credentialsFile << fileContent.dump(4);
+    credentialsFile.close();
+}
+
 void Login() {
     // Inicializar el servidor para saber la respuesta de la wallet
-    bool shouldKillServer = false;
-    httplib::Server* server;
-    auto serverThread = std::thread([&]() {
-            httplib::Server s;
-            // std::lock_guard m;
-
-            s.Get("/success", [](const httplib::Request& req, httplib::Response& res) {
-                res.set_content("Login successfull :)", "text/plain");
-            });
-            s.Get("/fail", [](const httplib::Request& req, httplib::Response& res) {
-                res.set_content("Login fail ;,, (", "text/plain");
-            });
-            s.listen("localhost", 5000);
-        }
-    );
+    bool isServerClose = false;
+    std::mutex isServerCloseMutex;
 
     KeyPair pair;
     pair.SignRandomEd25519();
+
+    auto serverThread = std::thread([&](std::function<void(std::string, KeyPair)> createCredentialsCallback, KeyPair keyPair) {
+            httplib::Server s;
+
+            s.Get("/success", [&](const httplib::Request& req, httplib::Response& res) {
+                const std::lock_guard<std::mutex> lock(isServerCloseMutex);
+                isServerClose = true;
+
+                createCredentialsCallback(std::move(req.get_param_value("account_id")), std::move(pair));
+                // Desde este punto el servidor ya no tiene utilidad,
+                // Que el hilo principal se ocupe de crear el fichero con las credenciales
+
+                res.set_content("Login successfull :)", "text/plain");
+            });
+            s.Get("/fail", [&](const httplib::Request& req, httplib::Response& res) {
+                const std::lock_guard<std::mutex> lock(isServerCloseMutex);
+                isServerClose = true;
+                Logger::Error("Login fails :c");
+                res.set_content("Login fails : (", "text/plain");
+            });
+            s.listen("localhost", 5000);
+        },
+        CreateCredentialsFile_Test,
+        pair
+    );
 
     std::string finalWalletUrl("https://wallet.testnet.near.org/login/?referrer=NEAR+CLI\\&public_key=ed25519%3A");
     finalWalletUrl.append(pair.GetPublicKey().substr(8));
@@ -50,7 +79,26 @@ void Login() {
         finalWalletUrl.insert(0, "xdg-open ");
         system(finalWalletUrl.c_str());
 
+        // Esperar por la resputas del usuario
+        
+        std::cout << "Waiting wallet response ";
+        while (!isServerClose)
+        {
+            // Es la peor solucion que para un loading
+            sleep(1);
+            std::cout << "." << std::flush;
+            sleep(1);
+            std::cout << "." << std::flush;
+            sleep(1);
+            std::cout << "." << std::flush;
+            sleep(1);
+            std::cout << "\b\b\b   \b\b\b" << std::flush;
+        }
+
+        // Esperar a que se redireccione a las paginas
+        sleep(2);
         serverThread.detach();
+
     #endif
 
     #ifdef __APPLE__

@@ -6,7 +6,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Account.h" />
+    <ClInclude Include="src\CommandsParser.h" />
     <ClInclude Include="src\KeyPair.h" />
     <ClInclude Include="src\logging\SimpleLogger.h">
       <Filter>logging</Filter>
@@ -14,7 +14,7 @@
     <ClInclude Include="src\utils.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Account.cpp" />
+    <ClCompile Include="src\CommandsParser.cpp" />
     <ClCompile Include="src\KeyPair.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>

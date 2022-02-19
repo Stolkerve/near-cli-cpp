@@ -181,7 +181,7 @@ void CommandsParser::StatusCommand() {
         {"params", "[]"},
     };
 
-    auto res = cli.Post("/", bodyJson.dump(), "application/json");
+    const auto res = cli.Post("/", bodyJson.dump(), "application/json");
     
     Logger::Info(nlohmann::json::parse(res->body)["result"].dump(2));
 }
@@ -196,7 +196,7 @@ void CommandsParser::NetworkInfoCommand()
         {"params", "[]"},
     };
 
-    auto res = cli.Post("/", bodyJson.dump(), "application/json");
+    const auto res = cli.Post("/", bodyJson.dump(), "application/json");
     
     Logger::Info(nlohmann::json::parse(res->body)["result"].dump(2));
 }
@@ -210,7 +210,7 @@ void CommandsParser::GenesisConfig() {
         {"params", "[]"},
     };
 
-    auto res = cli.Post("/", bodyJson.dump(), "application/json");
+    const auto res = cli.Post("/", bodyJson.dump(), "application/json");
     
     Logger::Info(nlohmann::json::parse(res->body)["result"].dump(2));
 }
@@ -227,7 +227,7 @@ void CommandsParser::ProtocolConfig()
         }},
     };
 
-    auto res = cli.Post("/", bodyJson.dump(), "application/json");
+    const auto res = cli.Post("/", bodyJson.dump(), "application/json");
     
     Logger::Info(nlohmann::json::parse(res->body)["result"].dump(2));
 }
@@ -241,7 +241,7 @@ void CommandsParser::GasPrice() {
         {"params", {nullptr}},
     };
 
-    auto res = cli.Post("/", bodyJson.dump(), "application/json");
+    const auto res = cli.Post("/", bodyJson.dump(), "application/json");
     
     Logger::Info(nlohmann::json::parse(res->body)["result"].dump(2));
 }
@@ -267,7 +267,7 @@ void CommandsParser::ViewAccessKey()
         },
     };
 
-    auto res = cli.Post("/", bodyJson.dump(), "application/json");
+    const auto res = cli.Post("/", bodyJson.dump(), "application/json");
     
     Logger::Info(nlohmann::json::parse(res->body)["result"].dump(2));
 }
@@ -293,7 +293,7 @@ void CommandsParser::ViewAccount()
         },
     };
 
-    auto res = cli.Post("/", bodyJson.dump(), "application/json");
+    const auto res = cli.Post("/", bodyJson.dump(), "application/json");
     
     Logger::Info(nlohmann::json::parse(res->body)["result"].dump(2));
 }
@@ -319,7 +319,7 @@ void CommandsParser::ViewContractCode()
         },
     };
 
-    auto res = cli.Post("/", bodyJson.dump(), "application/json");
+    const auto res = cli.Post("/", bodyJson.dump(), "application/json");
     
     Logger::Info(nlohmann::json::parse(res->body)["result"].dump(2));
 }
@@ -341,7 +341,7 @@ void CommandsParser::ViewFunction()
     // Si ningun argumento del metodo es pasado, se entiendo que no tiene argumentos
     else if (m_Argc < 5)
     {
-        args_base64 = "e30="; // e30= == {}
+        args_base64 = "e30="; // (e30=) == ({}) true
     }
     else
     {
@@ -363,9 +363,9 @@ void CommandsParser::ViewFunction()
         },
     };
 
-    auto res = cli.Post("/", bodyJson.dump(), "application/json");
-    auto resJson = nlohmann::json::parse(res->body);
-    std::vector<std::uint8_t> returnValueBytes = resJson["result"]["result"].get<std::vector<std::uint8_t>>();
-    std::string result( returnValueBytes.begin(), returnValueBytes.end() );
-    Logger::Info(result);
+    const auto res = cli.Post("/", bodyJson.dump(), "application/json");
+    const auto resJson = nlohmann::json::parse(res->body);
+    const std::vector<std::uint8_t> returnValueBytes = resJson["result"]["result"].get<std::vector<std::uint8_t>>();
+    const std::string result( returnValueBytes.begin(), returnValueBytes.end() );
+    Logger::Info(nlohmann::json::parse(result).dump(2));
 }

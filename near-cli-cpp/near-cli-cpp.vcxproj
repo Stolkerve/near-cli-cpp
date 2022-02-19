@@ -79,7 +79,6 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
-      <TreatSpecificWarningsAsErrors>all;%(TreatSpecificWarningsAsErrors)</TreatSpecificWarningsAsErrors>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;GLFW_INCLUDE_NONE;NEAR_CPP_CLIENT_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>src;dependencies\cpp-httplib;dependencies\nlohmann;dependencies\libsodium\src\libsodium\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
@@ -100,15 +99,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\Account.h" />
+    <ClInclude Include="src\CommandsParser.h" />
     <ClInclude Include="src\KeyPair.h" />
     <ClInclude Include="src\logging\SimpleLogger.h" />
     <ClInclude Include="src\utils.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Account.cpp" />
+    <ClCompile Include="src\CommandsParser.cpp" />
     <ClCompile Include="src\KeyPair.cpp" />
     <ClCompile Include="src\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="dependencies\libsodium\libsodium.vcxproj">
+      <Project>{8D4DBA89-F9B7-6E00-42F6-1FA6AE9F4C55}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

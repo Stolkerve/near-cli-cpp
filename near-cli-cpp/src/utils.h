@@ -3,6 +3,11 @@
 #include <vector>
 #include <iostream>
 #include <unistd.h>
+#ifdef __linux__
+    #include <unistd.h>
+    #include <sys/types.h>
+    #include <pwd.h>
+#endif
 
 #include <sodium/utils.h>
 
@@ -69,6 +74,26 @@ inline static std::string base64_encode(std::string bin_str)
 	// std::cout << sizeof(encoded_str_char) << "---" << base64_str.size() << std::endl;
 
 	return base64_str;
+}
+
+static std::string GetHomeDirectory()
+{
+	const char* homeDir;
+	#ifdef _WIN32
+		homeDir = getenv("USERPROFILE");
+	#endif
+
+	#ifdef __linux__
+		struct passwd *pw = getpwuid(getuid());
+		homeDir = pw->pw_dir;
+	#endif
+
+	#ifdef __APPLE__
+		struct passwd *pw = getpwuid(getuid());
+		homeDir = pw->pw_dir;
+	#endif
+
+	return homeDir;
 }
 
 // inline static void WaitingAnimation(bool& exp, const char* msg)

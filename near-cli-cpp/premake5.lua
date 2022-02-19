@@ -45,14 +45,16 @@ project "near-cli-cpp"
 		{
 			"dl",
 			"pthread",
-			"libsodium"
+			"libsodium",
+			"stdc++fs"
 		}
 	filter "system:windows"
 		systemversion "latest"
 
 		links
 		{
-			"ws2_32.lib"
+			"ws2_32.lib",
+			"libsodium"
 		}
 
 	filter "configurations:Debug"
@@ -67,4 +69,3 @@ project "near-cli-cpp"
 		runtime "Release"
 		optimize "Full"
         warnings "extra"
-        fatalwarnings "all"

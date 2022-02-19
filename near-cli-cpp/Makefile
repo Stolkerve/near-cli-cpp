@@ -38,7 +38,7 @@ OBJDIR = ../bin-int/Debug-linux/near-cli-cpp
 DEFINES += -D_CRT_SECURE_NO_WARNINGS -DGLFW_INCLUDE_NONE -DNEAR_CPP_CLIENT_DEBUG
 ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -fPIC -g -Wall -Wextra -g3
 ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -fPIC -g -Wall -Wextra -std=c++17 -g3
-LIBS += dependencies/libsodium/bin/Debug-linux/libsodium/liblibsodium.a -ldl -lpthread
+LIBS += dependencies/libsodium/bin/Debug-linux/libsodium/liblibsodium.a -ldl -lpthread -lstdc++fs
 LDDEPS += dependencies/libsodium/bin/Debug-linux/libsodium/liblibsodium.a
 ALL_LDFLAGS += $(LDFLAGS) -Ldependencies/libsodium/bin/Debug-linux/libsodium -L/usr/lib64 -m64
 
@@ -47,9 +47,9 @@ TARGETDIR = ../bin/Release-linux/near-cli-cpp
 TARGET = $(TARGETDIR)/near-cli-cpp
 OBJDIR = ../bin-int/Release-linux/near-cli-cpp
 DEFINES += -D_CRT_SECURE_NO_WARNINGS -DGLFW_INCLUDE_NONE -DNEAR_CPP_CLIENT_RELEASE
-ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O3 -fPIC -Wall -Wextra -Werror=all
-ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O3 -fPIC -Wall -Wextra -std=c++17 -Werror=all
-LIBS += dependencies/libsodium/bin/Release-linux/libsodium/liblibsodium.a -ldl -lpthread
+ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O3 -fPIC -Wall -Wextra
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O3 -fPIC -Wall -Wextra -std=c++17
+LIBS += dependencies/libsodium/bin/Release-linux/libsodium/liblibsodium.a -ldl -lpthread -lstdc++fs
 LDDEPS += dependencies/libsodium/bin/Release-linux/libsodium/liblibsodium.a
 ALL_LDFLAGS += $(LDFLAGS) -Ldependencies/libsodium/bin/Release-linux/libsodium -L/usr/lib64 -m64 -s
 
@@ -65,11 +65,9 @@ endif
 GENERATED :=
 OBJECTS :=
 
-GENERATED += $(OBJDIR)/Account.o
 GENERATED += $(OBJDIR)/CommandsParser.o
 GENERATED += $(OBJDIR)/KeyPair.o
 GENERATED += $(OBJDIR)/main.o
-OBJECTS += $(OBJDIR)/Account.o
 OBJECTS += $(OBJDIR)/CommandsParser.o
 OBJECTS += $(OBJDIR)/KeyPair.o
 OBJECTS += $(OBJDIR)/main.o
@@ -136,9 +134,6 @@ endif
 # File Rules
 # #############################################
 
-$(OBJDIR)/Account.o: src/Account.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/CommandsParser.o: src/CommandsParser.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"

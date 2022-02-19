@@ -5,55 +5,88 @@
 #include <fstream>
 #include <thread>
 #include <mutex>
+#include <array>
+#include <utility>
+#include <unordered_map>
+#include <memory>
+#ifdef __linux__
+#include <experimental/filesystem>
+#else
+#include <filesystem>
+#endif
 
-#include <functional>
-
-#include <httplib.h>
-#include <nlohmann/json.hpp>
-
-#include "utils.h"
 #include "logging/SimpleLogger.h"
 #include "KeyPair.h"
 
+#include "utils.h"
+
+namespace fs = std::experimental::filesystem;
+
+// keysPath = GetHomeDirectory() + "/.near-cpp-keys/";
+// std::fstream keysFile("", std::ios::in | std::ios::binary);
+
+void CreateCredentialsFile(std::string accountId, KeyPair pair)
+{
+    auto keysDir = GetHomeDirectory() + "/.near-cpp-keys/";
+    std::fstream credentialsFile((keysDir + accountId + ".json"), std::ios::out | std::ios::binary);
+
+    if (credentialsFile.is_open())
+    {
+        nlohmann::json fileContent = {
+            {"account_id", accountId},
+            {"public_key", pair.GetPublicKey()},
+            {"private_key", pair.GetPrivateKey()},
+        };
+
+        credentialsFile << fileContent.dump(4);
+        credentialsFile.close();
+    }
+    else
+    {
+        Logger::Error("No se puede crear el fichero de las credenciales de ", accountId);
+    }
+}
+
 CommandsParser::CommandsParser(int argc, char *argv[]) :
-    m_Argc(argc), m_Argv(argv + 1, argv + argc)
+    m_Argc(argc),
+    m_Argv(argv + 1, argv + argc)
 {
 }
 
-void CommandsParser::Start() {
-    if (m_Argc <= 1) {
+void CommandsParser::Start()
+{
+    fs::create_directory(GetHomeDirectory() + "/.near-cpp-keys");
+
+    if (m_Argc <= 1)
+    {
         Logger::Error("Please, pass a command");
-        std::terminate();
+        return;
+    }
+    else if (m_Argc >= 10)
+    {
+        Logger::Error("Bro, stop");
+        return;
     }
 
-    if (m_Argc == 2 && !strcmp(m_Argv[0].data(), "login")) {
-        LoginCommand();
-    } else {
-        Logger::Error("Unknow command!");
-        std::terminate();
+    for (const auto &[key, value] : m_Commands)
+    {
+        if (m_Argv.back() == key)
+        {
+            value();
+            return;
+        }
     }
 
-    if (m_Argc > 2) {
-        Logger::Info("Others commands");
-    }
+    Logger::Error("No commands found");
+    //  if (m_Argc < 3)
+    //  {
+    //      Logger::Error("Please, pass an argument");
+    //      return;
+    //  }
 }
 
-void CreateCredentialsFile_Test(std::string accountId, KeyPair pair)
+void CommandsParser::LoginCommand()
 {
-    std::fstream credentialsFile(( accountId + ".json"), std::ios_base::out);
-
-    nlohmann::json fileContent = {
-        {"account_id", accountId},
-        {"public_key", pair.GetPublicKey()},
-        {"private_key", pair.GetPrivateKey()},
-    };
-
-    credentialsFile << fileContent.dump(4);
-    credentialsFile.close();
-}
-
-
-void CommandsParser::LoginCommand() {
     bool isServerClose = false;
     std::mutex isServerCloseMutex;
 
@@ -75,25 +108,27 @@ void CommandsParser::LoginCommand() {
                 res.set_content("Login successfull :)", "text/plain");
             });
 
-            s.Get("/fail", [&](const httplib::Request& req, httplib::Response& res) {
+            s.Get("/fail", [&](const httplib::Request&, httplib::Response& res) {
                 const std::lock_guard<std::mutex> lock(isServerCloseMutex);
                 isServerClose = true;
                 Logger::Error("Login fails :c");
                 res.set_content("Login fails : (", "text/plain");
             });
-            s.listen("localhost", 5000);
+            s.listen(SERVER_HOST, SERVER_PORT); 
         },
-        CreateCredentialsFile_Test
+        CreateCredentialsFile
     );
 
     std::string finalWalletUrl("https://wallet.testnet.near.org/login/?referrer=NEAR+CLI\\&public_key=ed25519%3A");
     finalWalletUrl.append(pair.GetPublicKey().substr(8));
     finalWalletUrl.append("\\&success_url=http%3A%2F%2Flocalhost%3A5000/success\\&failure_url=http%3A%2F%2Flocalhost%3A5000/fail");
 
-    static auto waitAndShotdown = [&]() {
+    static auto waitAndShotdown = [&]()
+    {
         // Esperar por la resputas del usuario
-        while (!isServerClose) {}
-        
+        while (!isServerClose)
+        {
+        }
 
         // Esperar a que se redireccione a las paginas
         sleep(2);
@@ -122,20 +157,94 @@ void CommandsParser::LoginCommand() {
     #endif
 }
 
+nlohmann::json CommandsParser::CreateQueryMethodJson(const std::string &requestType, const nlohmann::json &params)
+{
+    nlohmann::json _template = {
+        {"jsonrpc", "2.0"},
+        {"id", "dontcare"},
+        {"method", "query"},
+        {"params", {
+            {"request_type", requestType},
+            {"finality", "final"},
+        }}};
 
-void View() {
-    // httplib::Client cli("http://rpc.testnet.near.org");
+    for (auto &[key, value] : params.items())
+    {
+        Logger::Info(key, " : ", value);
+        _template["params"][key] = value;
+    }
 
-    // nlohmann::json bodyJson = {
-    //     {"jsonrpc", "2.0"},
-    //     {"id", "dontcare"},
-    //     {"method", "query"},
-    //     {"params", {{"request_type", "view_access_key_list"}, {"finality", "final"}, {"account_id", "example.testnet"}}},
-    // };
+    return _template;
+}
 
-    // Logger::Info(bodyJson.dump(2));
+void CommandsParser::StatusCommand() {
+    httplib::Client cli("http://rpc.testnet.near.org");
+    const nlohmann::json bodyJson = {
+        {"jsonrpc", "2.0"},
+        {"id", "dontcare"},
+        {"method", "status"},
+        {"params", "[]"},
+    };
 
-    // auto res = cli.Post("/", bodyJson.dump(), "application/json");
-    // Logger::Info("Status: ", res->status);
-    // Logger::Info("Body: ", nlohmann::json::parse(res->body).dump(2));
+    auto res = cli.Post("/", bodyJson.dump(), "application/json");
+    
+    Logger::Info(nlohmann::json::parse(res->body)["result"].dump(2));
+}
+
+void CommandsParser::NetworkInfoCommand() {
+    httplib::Client cli("http://rpc.testnet.near.org");
+    const nlohmann::json bodyJson = {
+        {"jsonrpc", "2.0"},
+        {"id", "dontcare"},
+        {"method", "network_info"},
+        {"params", "[]"},
+    };
+
+    auto res = cli.Post("/", bodyJson.dump(), "application/json");
+    
+    Logger::Info(nlohmann::json::parse(res->body)["result"].dump(2));
+}
+
+void CommandsParser::GenesisConfig() {
+    httplib::Client cli("http://rpc.testnet.near.org");
+    const nlohmann::json bodyJson = {
+        {"jsonrpc", "2.0"},
+        {"id", "dontcare"},
+        {"method", "EXPERIMENTAL_genesis_config"},
+        {"params", "[]"},
+    };
+
+    auto res = cli.Post("/", bodyJson.dump(), "application/json");
+    
+    Logger::Info(nlohmann::json::parse(res->body)["result"].dump(2));
+}
+
+void CommandsParser::ProtocolConfig() {
+    httplib::Client cli("http://rpc.testnet.near.org");
+    const nlohmann::json bodyJson = {
+        {"jsonrpc", "2.0"},
+        {"id", "dontcare"},
+        {"method", "EXPERIMENTAL_protocol_config"},
+        {"params", {
+            {"finality", "final"}
+        }},
+    };
+
+    auto res = cli.Post("/", bodyJson.dump(), "application/json");
+    
+    Logger::Info(nlohmann::json::parse(res->body)["result"].dump(2));
+}
+
+void CommandsParser::GasPrice() {
+    httplib::Client cli("http://rpc.testnet.near.org");
+    const nlohmann::json bodyJson = {
+        {"jsonrpc", "2.0"},
+        {"id", "dontcare"},
+        {"method", "gas_price"},
+        {"params", {nullptr}},
+    };
+
+    auto res = cli.Post("/", bodyJson.dump(), "application/json");
+    
+    Logger::Info(nlohmann::json::parse(res->body)["result"].dump(2));
 }

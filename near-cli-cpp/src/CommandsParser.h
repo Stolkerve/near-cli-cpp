@@ -19,6 +19,7 @@ public:
 private:
 
     nlohmann::json CreateQueryMethodJson(const std::string &requestType, const nlohmann::json &params);
+    nlohmann::json CreateSimpleMethodJson(const std::string &method, const nlohmann::json &params);
 
     void LoginCommand();
     void StatusCommand();

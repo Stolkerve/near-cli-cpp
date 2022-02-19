@@ -165,8 +165,23 @@ nlohmann::json CommandsParser::CreateQueryMethodJson(const std::string &requestT
 
     for (auto &[key, value] : params.items())
     {
-        Logger::Info(key, " : ", value);
         _template["params"][key] = value;
+    }
+
+    return _template;
+}
+
+nlohmann::json CommandsParser::CreateSimpleMethodJson(const std::string &method, const nlohmann::json &params)
+{
+    nlohmann::json _template = {
+        {"jsonrpc", "2.0"},
+        {"id", "dontcare"},
+        {"method", method},
+    };
+
+    for (auto &[key, value] : params.items())
+    {
+        _template[key] = value;
     }
 
     return _template;
@@ -174,27 +189,23 @@ nlohmann::json CommandsParser::CreateQueryMethodJson(const std::string &requestT
 
 void CommandsParser::StatusCommand() {
     httplib::Client cli("http://rpc.testnet.near.org");
-    const nlohmann::json bodyJson = {
-        {"jsonrpc", "2.0"},
-        {"id", "dontcare"},
-        {"method", "status"},
-        {"params", "[]"},
-    };
+    const nlohmann::json bodyJson = CreateSimpleMethodJson("status", {
+            {"params", "[]"},
+        }
+    );
 
     const auto res = cli.Post("/", bodyJson.dump(), "application/json");
     
-    Logger::Info(nlohmann::json::parse(res->body)["result"].dump(2));
+    Logger::Info('\n', nlohmann::json::parse(res->body)["result"].dump(2));
 }
 
 void CommandsParser::NetworkInfoCommand()
 {
     httplib::Client cli("http://rpc.testnet.near.org");
-    const nlohmann::json bodyJson = {
-        {"jsonrpc", "2.0"},
-        {"id", "dontcare"},
-        {"method", "network_info"},
-        {"params", "[]"},
-    };
+    const nlohmann::json bodyJson = CreateSimpleMethodJson("network_info", {
+            {"params", "[]"},
+        }
+    );
 
     const auto res = cli.Post("/", bodyJson.dump(), "application/json");
     
@@ -203,47 +214,41 @@ void CommandsParser::NetworkInfoCommand()
 
 void CommandsParser::GenesisConfig() {
     httplib::Client cli("http://rpc.testnet.near.org");
-    const nlohmann::json bodyJson = {
-        {"jsonrpc", "2.0"},
-        {"id", "dontcare"},
-        {"method", "EXPERIMENTAL_genesis_config"},
-        {"params", "[]"},
-    };
+    const nlohmann::json bodyJson = CreateSimpleMethodJson("EXPERIMENTAL_genesis_config", {
+            {"params", "[]"},
+        }
+    );
 
     const auto res = cli.Post("/", bodyJson.dump(), "application/json");
     
-    Logger::Info(nlohmann::json::parse(res->body)["result"].dump(2));
+    Logger::Info('\n', nlohmann::json::parse(res->body)["result"].dump(2));
 }
 
 void CommandsParser::ProtocolConfig()
 {
     httplib::Client cli("http://rpc.testnet.near.org");
-    const nlohmann::json bodyJson = {
-        {"jsonrpc", "2.0"},
-        {"id", "dontcare"},
-        {"method", "EXPERIMENTAL_protocol_config"},
-        {"params", {
-            {"finality", "final"}
-        }},
-    };
+    const nlohmann::json bodyJson = CreateSimpleMethodJson("EXPERIMENTAL_protocol_config", {
+            {"params", {
+                {"finality", "final"}
+            }},
+        }
+    );
 
     const auto res = cli.Post("/", bodyJson.dump(), "application/json");
     
-    Logger::Info(nlohmann::json::parse(res->body)["result"].dump(2));
+    Logger::Info('\n', nlohmann::json::parse(res->body)["result"].dump(2));
 }
 
 void CommandsParser::GasPrice() {
     httplib::Client cli("http://rpc.testnet.near.org");
-    const nlohmann::json bodyJson = {
-        {"jsonrpc", "2.0"},
-        {"id", "dontcare"},
-        {"method", "gas_price"},
-        {"params", {nullptr}},
-    };
+    const nlohmann::json bodyJson = CreateSimpleMethodJson("gas_price", {
+            {"params", {nullptr}},
+        }
+    );
 
     const auto res = cli.Post("/", bodyJson.dump(), "application/json");
     
-    Logger::Info(nlohmann::json::parse(res->body)["result"].dump(2));
+    Logger::Info('\n', nlohmann::json::parse(res->body)["result"].dump(2));
 }
 
 void CommandsParser::ViewAccessKey()
@@ -255,21 +260,15 @@ void CommandsParser::ViewAccessKey()
     }
 
     httplib::Client cli("http://rpc.testnet.near.org");
-    const nlohmann::json bodyJson = {
-        {"jsonrpc", "2.0"},
-        {"id", "dontcare"},
-        {"method", "query"},
-        {"params", {
-                {"request_type", "view_access_key_list"},
-                {"finality", "final"},
-                {"account_id", m_Argv[1]},
-            }
-        },
-    };
+
+    const nlohmann::json bodyJson = CreateQueryMethodJson("view_access_key_list", {
+            {"account_id", m_Argv[1]},
+        }
+    );
 
     const auto res = cli.Post("/", bodyJson.dump(), "application/json");
     
-    Logger::Info(nlohmann::json::parse(res->body)["result"].dump(2));
+    Logger::Info('\n', nlohmann::json::parse(res->body)["result"]["keys"].dump(2));
 }
 
 void CommandsParser::ViewAccount()
@@ -281,21 +280,14 @@ void CommandsParser::ViewAccount()
     }
 
     httplib::Client cli("http://rpc.testnet.near.org");
-    const nlohmann::json bodyJson = {
-        {"jsonrpc", "2.0"},
-        {"id", "dontcare"},
-        {"method", "query"},
-        {"params", {
-                {"request_type", "view_account"},
-                {"finality", "final"},
-                {"account_id", m_Argv[1]},
-            }
-        },
-    };
+    const nlohmann::json bodyJson = CreateQueryMethodJson("view_account", {
+            {"account_id", m_Argv[1]},
+        }
+    );
 
     const auto res = cli.Post("/", bodyJson.dump(), "application/json");
     
-    Logger::Info(nlohmann::json::parse(res->body)["result"].dump(2));
+    Logger::Info('\n', nlohmann::json::parse(res->body)["result"].dump(2));
 }
 
 void CommandsParser::ViewContractCode()
@@ -307,26 +299,18 @@ void CommandsParser::ViewContractCode()
     }
 
     httplib::Client cli("http://rpc.testnet.near.org");
-    const nlohmann::json bodyJson = {
-        {"jsonrpc", "2.0"},
-        {"id", "dontcare"},
-        {"method", "query"},
-        {"params", {
-                {"request_type", "view_code"},
-                {"finality", "final"},
-                {"account_id", m_Argv[1]},
-            }
-        },
-    };
+    const nlohmann::json bodyJson = CreateQueryMethodJson("view_code", {
+            {"account_id", m_Argv[1]},
+        }
+    );
 
     const auto res = cli.Post("/", bodyJson.dump(), "application/json");
     
-    Logger::Info(nlohmann::json::parse(res->body)["result"].dump(2));
+    Logger::Info('\n', nlohmann::json::parse(res->body)["result"].dump(2));
 }
 
 void CommandsParser::ViewFunction()
 {
-    // Logger::Info(m_Argv[1], ", ",  m_Argv[2], ", ", m_Argv[3]);
     std::string args_base64;
     if (m_Argc < 3)
     {
@@ -349,23 +333,16 @@ void CommandsParser::ViewFunction()
     }
 
     httplib::Client cli("http://rpc.testnet.near.org");
-    const nlohmann::json bodyJson = {
-        {"jsonrpc", "2.0"},
-        {"id", "dontcare"},
-        {"method", "query"},
-        {"params", {
-                {"request_type", "call_function"},
-                {"finality", "final"},
-                {"account_id",  m_Argv[1]},
-                {"method_name", m_Argv[2]},
-                {"args_base64", args_base64},
-            }
-        },
-    };
+    const nlohmann::json bodyJson = CreateQueryMethodJson("call_function", {
+            {"account_id",  m_Argv[1]},
+            {"method_name", m_Argv[2]},
+            {"args_base64", args_base64},
+        }
+    );
 
     const auto res = cli.Post("/", bodyJson.dump(), "application/json");
     const auto resJson = nlohmann::json::parse(res->body);
     const std::vector<std::uint8_t> returnValueBytes = resJson["result"]["result"].get<std::vector<std::uint8_t>>();
     const std::string result( returnValueBytes.begin(), returnValueBytes.end() );
-    Logger::Info(nlohmann::json::parse(result).dump(2));
+    Logger::Info('\n', nlohmann::json::parse(result).dump(2));
 }

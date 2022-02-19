@@ -70,7 +70,7 @@ void CommandsParser::Start()
 
     for (const auto &[key, value] : m_Commands)
     {
-        if (m_Argv.back() == key)
+        if (m_Argv.front() == key)
         {
             value();
             return;
@@ -78,11 +78,6 @@ void CommandsParser::Start()
     }
 
     Logger::Error("No commands found");
-    //  if (m_Argc < 3)
-    //  {
-    //      Logger::Error("Please, pass an argument");
-    //      return;
-    //  }
 }
 
 void CommandsParser::LoginCommand()
@@ -191,7 +186,8 @@ void CommandsParser::StatusCommand() {
     Logger::Info(nlohmann::json::parse(res->body)["result"].dump(2));
 }
 
-void CommandsParser::NetworkInfoCommand() {
+void CommandsParser::NetworkInfoCommand()
+{
     httplib::Client cli("http://rpc.testnet.near.org");
     const nlohmann::json bodyJson = {
         {"jsonrpc", "2.0"},
@@ -219,7 +215,8 @@ void CommandsParser::GenesisConfig() {
     Logger::Info(nlohmann::json::parse(res->body)["result"].dump(2));
 }
 
-void CommandsParser::ProtocolConfig() {
+void CommandsParser::ProtocolConfig()
+{
     httplib::Client cli("http://rpc.testnet.near.org");
     const nlohmann::json bodyJson = {
         {"jsonrpc", "2.0"},
@@ -247,4 +244,128 @@ void CommandsParser::GasPrice() {
     auto res = cli.Post("/", bodyJson.dump(), "application/json");
     
     Logger::Info(nlohmann::json::parse(res->body)["result"].dump(2));
+}
+
+void CommandsParser::ViewAccessKey()
+{
+    if (m_Argc < 3)
+    {
+        Logger::Error("Pass the account id. keys [account id]");
+        return;
+    }
+
+    httplib::Client cli("http://rpc.testnet.near.org");
+    const nlohmann::json bodyJson = {
+        {"jsonrpc", "2.0"},
+        {"id", "dontcare"},
+        {"method", "query"},
+        {"params", {
+                {"request_type", "view_access_key_list"},
+                {"finality", "final"},
+                {"account_id", m_Argv[1]},
+            }
+        },
+    };
+
+    auto res = cli.Post("/", bodyJson.dump(), "application/json");
+    
+    Logger::Info(nlohmann::json::parse(res->body)["result"].dump(2));
+}
+
+void CommandsParser::ViewAccount()
+{
+    if (m_Argc < 3)
+    {
+        Logger::Error("Pass the account id. keys [account id]");
+        return;
+    }
+
+    httplib::Client cli("http://rpc.testnet.near.org");
+    const nlohmann::json bodyJson = {
+        {"jsonrpc", "2.0"},
+        {"id", "dontcare"},
+        {"method", "query"},
+        {"params", {
+                {"request_type", "view_account"},
+                {"finality", "final"},
+                {"account_id", m_Argv[1]},
+            }
+        },
+    };
+
+    auto res = cli.Post("/", bodyJson.dump(), "application/json");
+    
+    Logger::Info(nlohmann::json::parse(res->body)["result"].dump(2));
+}
+
+void CommandsParser::ViewContractCode()
+{
+    if (m_Argc < 3)
+    {
+        Logger::Error("Pass the contract account id. keys [contract account id]");
+        return;
+    }
+
+    httplib::Client cli("http://rpc.testnet.near.org");
+    const nlohmann::json bodyJson = {
+        {"jsonrpc", "2.0"},
+        {"id", "dontcare"},
+        {"method", "query"},
+        {"params", {
+                {"request_type", "view_code"},
+                {"finality", "final"},
+                {"account_id", m_Argv[1]},
+            }
+        },
+    };
+
+    auto res = cli.Post("/", bodyJson.dump(), "application/json");
+    
+    Logger::Info(nlohmann::json::parse(res->body)["result"].dump(2));
+}
+
+void CommandsParser::ViewFunction()
+{
+    // Logger::Info(m_Argv[1], ", ",  m_Argv[2], ", ", m_Argv[3]);
+    std::string args_base64;
+    if (m_Argc < 3)
+    {
+        Logger::Error("Pass the account id. keys [account id] [method name] \'{\"param\": 123}\'(optinal if not take any paramas)");
+        return;
+    }
+    else if (m_Argc < 4)
+    {
+        Logger::Error("Pass the method name. keys [account id] [method name] \'{\"param\": 123}\'(optinal if not take any paramas)");
+        return;
+    }
+    // Si ningun argumento del metodo es pasado, se entiendo que no tiene argumentos
+    else if (m_Argc < 5)
+    {
+        args_base64 = "e30="; // e30= == {}
+    }
+    else
+    {
+        args_base64 = httplib::detail::base64_encode(m_Argv[3].data());
+    }
+
+    httplib::Client cli("http://rpc.testnet.near.org");
+    const nlohmann::json bodyJson = {
+        {"jsonrpc", "2.0"},
+        {"id", "dontcare"},
+        {"method", "query"},
+        {"params", {
+                {"request_type", "call_function"},
+                {"finality", "final"},
+                {"account_id",  m_Argv[1]},
+                {"method_name", m_Argv[2]},
+                {"args_base64", args_base64},
+            }
+        },
+    };
+
+    auto res = cli.Post("/", bodyJson.dump(), "application/json");
+    auto resJson = nlohmann::json::parse(res->body);
+    std::vector<std::uint8_t> returnValueBytes = resJson["result"]["result"].get<std::vector<std::uint8_t>>();
+    std::string result( returnValueBytes.begin(), returnValueBytes.end() );
+    Logger::Info(result);
 }

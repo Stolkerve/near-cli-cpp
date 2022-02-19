@@ -45,37 +45,6 @@ inline static std::string EncodeBase58(const std::vector<uint8_t> &data)
 	return result;
 }
 
-inline static std::string base64_encode(std::string bin_str)
-{
-
-	// bytes len
-	const size_t bin_len = bin_str.size();
-
-	// base64_max_len
-	const size_t base64_max_len = sodium_base64_encoded_len(bin_len, sodium_base64_VARIANT_ORIGINAL);
-
-	// std::cout << base64_max_len << std::endl;
-
-	// base64 encoded var
-	std::string base64_str(base64_max_len - 1, 0);
-
-	char *encoded_str_char = sodium_bin2base64(
-		(char *)base64_str.data(),
-		base64_max_len,
-		(unsigned char *)bin_str.data(),
-		bin_len,
-		sodium_base64_VARIANT_ORIGINAL);
-
-	if (encoded_str_char == NULL)
-	{
-		throw "Base64 Error: Failed to encode string";
-	}
-
-	// std::cout << sizeof(encoded_str_char) << "---" << base64_str.size() << std::endl;
-
-	return base64_str;
-}
-
 static std::string GetHomeDirectory()
 {
 	const char* homeDir;

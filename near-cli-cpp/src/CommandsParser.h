@@ -26,6 +26,10 @@ private:
     void GenesisConfig();
     void ProtocolConfig();
     void GasPrice();
+    void ViewAccessKey();
+    void ViewAccount();
+    void ViewContractCode();
+    void ViewFunction();
 
 private:
     const int m_Argc;
@@ -56,7 +60,22 @@ private:
             "gas-price",
             [this]() {GasPrice();}
         },        
-        
+        {
+            "keys",
+            [this]() {ViewAccessKey();}
+        }, 
+        {
+            "account",
+            [this]() {ViewAccount();}
+        },
+        {
+            "code",
+            [this]() {ViewContractCode();}
+        },
+        {
+            "view",
+            [this]() {ViewFunction();}
+        }, 
     };
 };
 
